@@ -2,19 +2,24 @@ import { Input } from '@/component/ui/input';
 import apiUtils from '@/lib/apiUtils';
 import React, { useState } from 'react';
 import { toast, Toaster } from 'react-hot-toast';
-import { useNavigate } from "react-router-dom";
 import { Button } from './ui/button';
 
-const RegisterForm: React.FC = () =>
+interface RegProps {
+    inputuser: { id: null, firstName: "", lastName: "", email: "", password: "",
+        phone: "", dob: "", gender: "", address: "", roleType: "ARTIST"
+    },
+    state: number | 0,
+    nextStep: () => {}
+}
+
+const RegisterForm: React.FC<RegProps> = ({inputuser, state, nextStep}) =>
 {
-    let navigate = useNavigate();
-    const [user, setUser] = useState({ id: null, firstName: "", lastName: "", email: "", password: "",
-        phone: "", dob: "", gender: "", address: ""
-    });
+    const [user, setUser] = useState(inputuser);
 
     const handleSubmit = (e: React.FormEvent) =>
     {
         e.preventDefault();
+        console.log("user", user)
         apiUtils.post("ams/users/register", user)
         .then((res) => {
             // Display success message
@@ -24,17 +29,21 @@ const RegisterForm: React.FC = () =>
     
             // Delay navigation to ensure the toast is visible before redirecting
             setTimeout(() => {
-                navigate("/dashboard");
+                nextStep();
             }, 1000); // 3 seconds delay to allow the toast to be seen
         })
         .catch((error) => {
-            toast.error("Registration Failed! ");
+            toast.error("Registration Failed! ", {
+            duration: 1000,  // show the toast for 3 seconds
+            });
         });
     };
 
   return (
     <div className="w-full items-center min-h-screen bg-gray-100 border border-black-300 rounded">
+        {state === 1 ?
         <h2 className="text-2xl font-semibold text-center mb-6"> Register </h2>
+        : null }
       <form
           onSubmit={handleSubmit}
           className="p-9 grid grid-cols-2 md:grid-cols-2 gap-6 justify-center bg-gray-50"
@@ -93,9 +102,12 @@ const RegisterForm: React.FC = () =>
                 </label>
                 <Input
                     id="phone"
-                    type="text"
+                    type="number"
                     value={user.phone}
-                    onChange={(e) => setUser({...user, phone: e.target.value})}
+                    onChange={(e) => {
+                        if(e.target.value.length < 15)
+                            setUser({...user, phone: e.target.value})
+                    }}
                     className="w-full bg-sky-300 px-4 py-2 border border-gray-300 rounded text-sm"
                 />
             </div>
@@ -105,7 +117,7 @@ const RegisterForm: React.FC = () =>
                 </label>
                 <Input
                     id="dob"
-                    type="text"
+                    type="date"
                     value={user.dob}
                     onChange={(e) => setUser({...user, dob: e.target.value})}
                     className="w-full bg-sky-300 px-4 py-2 border border-gray-300 rounded text-sm"
@@ -127,20 +139,42 @@ const RegisterForm: React.FC = () =>
                 <label htmlFor="gender" className="block text-sm font-medium mb-1">
                     Gender
                 </label>
-                <Input
+                <select
                     id="gender"
-                    type="text"
                     value={user.gender}
                     onChange={(e) => setUser({...user, gender: e.target.value})}
                     className="w-full bg-sky-300 px-4 py-2 border border-gray-300 rounded text-sm"
-                />
+                >
+                    <option id="M" value="M"> Male </option>
+                    <option id="F" value="F"> Female </option>
+                    <option id="O" value="O"> Other </option>
+                </select>
             </div>
+            {state === 0 ? <>
+            <div className="mb-4">
+                <label htmlFor="gender" className="block text-sm font-medium mb-1">
+                    Role
+                </label>
+                <select
+                    id="roleType"
+                    value={user.roleType}
+                    onChange={(e) => setUser({...user, roleType: e.target.value})}
+                    className="w-full bg-sky-300 px-4 py-2 border border-gray-300 rounded text-sm"
+                >
+                    <option id="ARTIST" value="ARTIST"> Artist </option>
+                    <option id="ARTIST_MANAGER" value="ARTIST_MANAGER"> Artist Manager </option>
+                    <option id="SUPER_ADMIN" value="SUPER_ADMIN"> Super Admin </option>
+                </select>
+            </div>
+            <div></div>
+            </>: null }
             <div className="mt-3 mb-6 flex items-center justify-between">
                 <Button
                 type="submit"
                 className="rounded bg-lime-600 text-white py-2 hover:bg-lime-700 transition-colors"
                 >
-                Register Now
+                {state === 0 && user.id === null ? <> Register </> :
+                state === 0 ? <> Update </> : <> Register </>} 
                 </Button>
           </div>
     </form>

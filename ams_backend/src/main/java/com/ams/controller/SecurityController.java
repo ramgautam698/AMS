@@ -47,7 +47,9 @@ public class SecurityController
             Integer userId = LoginUtils.getIdForMail(authRequest.getEmail());
             String token = jwtUtil.generateToken(userId);
             LoginUtils.getLoggedInUser(userId).setPassword(token);
-            return ResponseEntity.status(HttpStatus.OK).body(token);
+            Users user = LoginUtils.getLoggedInUser(userId);
+            System.out.println("Token: " + token);
+            return ResponseEntity.status(HttpStatus.OK).body(user);
         }
         catch(AuthenticationException e)
         {

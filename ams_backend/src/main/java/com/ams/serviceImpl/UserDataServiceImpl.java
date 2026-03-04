@@ -23,6 +23,7 @@ import com.ams.model.Users;
 import com.ams.repository.UsersRepo;
 import com.ams.service.UsersService;
 import com.ams.utils.LoginUtils;
+import com.ams.utils.RoleType;
 
 @Service
 public class UserDataServiceImpl implements UsersService
@@ -37,6 +38,14 @@ public class UserDataServiceImpl implements UsersService
 	public Integer registerUser(Users user)
 	{
 		user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+		if(user.getRoleType() == null)
+			user.setRoleType(RoleType.ARTIST);
 		return usersRepo.save(user).getId();
+	}
+
+	@Override
+	public Users getInfo()
+	{
+		return LoginUtils.getUserInfo();
 	}
 }

@@ -16,12 +16,12 @@ const LoginForm: React.FC = () => {
     e.preventDefault();
   
     apiUtils
-      .post("/ams/security/login", { email: email, password: password })
+      .post("ams/security/login", { email: email, password: password })
       .then((res) => {
         // Store user and token in session storage
         sessionStorage.setItem("user", JSON.stringify(res?.data));
         sessionStorage.setItem("token", res?.data?.password);
-        // localStorage.setItem("user", JSON.stringify(res?.data));
+        // sessionStorage.setItem("roleType", res?.data?.roleType);
   
         // Display success message
         toast.success("Login Successful!", {
@@ -30,11 +30,7 @@ const LoginForm: React.FC = () => {
   
         // Delay navigation to ensure the toast is visible before redirecting
         setTimeout(() => {
-          if (res?.data?.userType?.typeName === "Admin") {
-            navigate("/admin-dashboard");
-          } else {
-            navigate("/dashboard");
-          }
+          navigate("/dashboard");
         }, 1000); // 3 seconds delay to allow the toast to be seen
       })
       .catch((error) => {
