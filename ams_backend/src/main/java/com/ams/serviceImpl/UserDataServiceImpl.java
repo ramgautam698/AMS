@@ -1,25 +1,14 @@
 package com.ams.serviceImpl;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.sql.Date;
-import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
+import com.ams.model.Artist;
 import com.ams.model.Users;
+import com.ams.repository.ArtistRepo;
 import com.ams.repository.UsersRepo;
 import com.ams.service.UsersService;
 import com.ams.utils.LoginUtils;
@@ -33,6 +22,9 @@ public class UserDataServiceImpl implements UsersService
 
 	@Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+	
+	@Autowired
+	private ArtistRepo artistRepo;
 
 	@Override
 	public Integer registerUser(Users user)
@@ -47,5 +39,35 @@ public class UserDataServiceImpl implements UsersService
 	public Users getInfo()
 	{
 		return LoginUtils.getUserInfo();
+	}
+
+	@Override
+	public void deleteUser()
+	{
+		Users user = LoginUtils.getUserInfo();
+		usersRepo.deleteByEmail(user.getEmail());
+		LoginUtils.removeLoggedInUser(user.getId());
+	}
+	
+	@Override
+	public List<Artist> getArtist(Integer offset, Integer noOfRow)
+	{
+		if(offset == null)
+			offset =  0;
+		if(noOfRow == null)
+			noOfRow = 10;
+		return artistRepo.getArtist(offset, noOfRow);
+	}
+	
+	@Override
+	public Integer addArtist(Artist artist)
+	{
+		return artistRepo.save(artist).getId();
+	}
+	
+	@Override
+	public void deleteArtist(Integer id)
+	{
+		artistRepo.deleteById(id);
 	}
 }

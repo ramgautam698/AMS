@@ -7,4 +7,5 @@ import com.ams.model.Users;
 public interface AdminService
 {
 	List<Users> getUsers(Integer offset, Integer noOfRow);
+	String deleteUser(String email);
 }

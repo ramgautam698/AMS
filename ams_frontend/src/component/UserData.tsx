@@ -4,6 +4,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import apiUtils from '@/lib/apiUtils';
 import React, { useEffect, useState } from 'react';
 import RegisterForm from './RegistrationForm';
+import { toast, Toaster } from 'react-hot-toast';
 
 const UserData: React.FC = () =>
 {
@@ -20,6 +21,7 @@ const UserData: React.FC = () =>
         phone: "", dob: "", gender: "", address: "", roleType: null
     });
     const [open, setOpen] = useState(null);
+    const [del, setDel] = useState("");
 
     const getUsers = (offset = pagination.offset, noOfRows = pagination.noOfRows) =>
     {
@@ -60,14 +62,34 @@ const UserData: React.FC = () =>
         getUsers();
     }, []);
 
+    const deleteUser = () =>
+    {
+        let email = del;
+        apiUtils.delete("ams/super-admin/user", {email}).then((res) => {
+            // Display success message
+            toast.success("User Deleted !!!", {
+            duration: 1000,  // show the toast for 3 seconds
+            });
+            setDel("");
+            getUsers();
+
+        })
+        .catch((error) => {
+            toast.error("Deletion Failed! ", {
+            duration: 1000,  // show the toast for 3 seconds
+            });
+        });
+    }
+
     return(
     <>
+        <Toaster />
         <div><Button onClick={() => handleOpenModal("new")}
             className="px-2 py-3 text-left text-xs font-medium text-green-500 uppercase bg-blue-100 tracking-wider">
-                Register New User
+                Register New Artist
         </Button></div>
         <Table>
-            <TableCaption> User List </TableCaption>
+            <TableCaption> Artist List </TableCaption>
             <TableHeader>
             <TableRow>
                 {userHead.map((head, i) => (
@@ -76,7 +98,7 @@ const UserData: React.FC = () =>
                 </TableHead>
                 ))}
                 <TableHead className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                    Update
+                    Action
                 </TableHead>
             </TableRow>
             </TableHeader>
@@ -89,8 +111,9 @@ const UserData: React.FC = () =>
                     </TableCell>
                 ))}
                 <TableCell className="text-sm text-gray-900">
-                    <div className="relative w-full" onClick={() => setupdateUser({...user, password: null})}>
-                    <Button onClick={() => handleOpenModal("update")} className="bg-blue-500 hover:bg-blue-600 text-white rounded right-0">Update</Button>
+                    <div className="flex relative w-full" onClick={() => setupdateUser({...user, password: null})}>
+                    <Button onClick={() => handleOpenModal("update")} className="bg-blue-500 hover:bg-blue-600 text-white rounded">Update</Button>
+                    <Button onClick={() => setDel(user?.email)} className="bg-red-500 hover:bg-orange-500 text-white rounded ml-2">Delete</Button>
                     </div>
                 </TableCell>
                 </TableRow>
@@ -145,6 +168,33 @@ const UserData: React.FC = () =>
                 </div>
                 <div className="modal-body ">
                     <RegisterForm inputuser={updateUser} state={0} nextStep={() => handleOpenModal(null)} />
+                </div>
+            </div>
+        </div>
+        : null }
+
+        {del?.length > 3 ?
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-50 w-full ">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-3/4 max-h-screen overflow-y-auto ">
+                <div className='flex bg-blue-200 flex-col md:flex-row gap-4 bg-blue-800 justify-center items-center'>
+                    <h2 className="text-xl font-bold text-white md:w-4/5 "> Delete User</h2>
+                    <span className="md:w-1/5 justify-end ">
+                        <button className="bg-white" onClick={() => setDel("")} > Close </button>
+                    </span>
+                </div>
+                <div className="modal-body ">
+                    Are you sure you want to record user of selected user? <p />
+                    Email: {del}
+                </div>
+                <div className="mt-3 mb-6 flex items-center justify-between">
+                    <Button type="button" onClick={() => setDel("")}
+                    className="rounded bg-green-600 text-white py-2 hover:bg-green-400 transition-colors" >
+                        Cancel
+                    </Button>
+                    <Button type="button" onClick={() => deleteUser()}
+                    className="rounded bg-red-600 text-white py-2 hover:bg-orange-700 transition-colors" >
+                        Delete
+                    </Button>
                 </div>
             </div>
         </div>

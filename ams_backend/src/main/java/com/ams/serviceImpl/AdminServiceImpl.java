@@ -24,5 +24,12 @@ public class AdminServiceImpl implements AdminService
 			noOfRow = 10;
 		return usersRepo.getUsers(offset, noOfRow);
 	}
+
+	@Override
+	public String deleteUser(String email)
+	{
+		usersRepo.deleteByEmail(email);
+		return email;
+	}
 	
 }

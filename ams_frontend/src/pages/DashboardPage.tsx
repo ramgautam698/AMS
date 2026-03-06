@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Menu, X, ChevronDown } from 'lucide-react';
 import apiUtils from '@/lib/apiUtils';
 import UserData from '@/component/UserData';
+import ArtistData from '@/component/ArtistData';
 
 const DashboardPage: React.FC = () =>
 {
@@ -46,11 +47,12 @@ const DashboardPage: React.FC = () =>
             <header className="bg-sky-600 sticky top-0 text-white shadow-md">
                 <div className="container  mx-auto px-4 py-3 flex justify-between items-center">
                     <h1 className="text-2xl font-bold"> {user.firstName} {user.lastName} </h1>
-                    <nav className="hidden md:flex space-x-4">
+                    <nav className="hidden md:flex space-x-4 flex items-center">
                         {user.roleType === "SUPER_ADMIN"? <>
-                            <div className="flex items-center cursor-pointer mr-1" onClick={() => setTab(0)}>
-                                <span> User Data </span>
-                            </div>
+                            <span className="cursor-pointer mr-1 hover:bg-green-500" onClick={() => setTab(0)}> User Data </span>
+                        </> : null}
+                        {user.roleType === "SUPER_ADMIN" || user.roleType === "ARTIST_MANAGER" ? <>
+                            <span className="cursor-pointer mr-1 hover:bg-green-500" onClick={() => setTab(1)}> Artist Data </span>
                         </> : null}
                         <div className="relative group">
                             <div className="flex items-center cursor-pointer ml-9" onClick={toggleDropdown}>
@@ -71,6 +73,10 @@ const DashboardPage: React.FC = () =>
 
             {user.roleType === "SUPER_ADMIN" && tab === 0 ? <>
                 <UserData />
+            </> : null}
+
+            {(user.roleType === "SUPER_ADMIN" || user.roleType === "ARTIST_MANAGER") && tab === 1 ? <>
+                <ArtistData />
             </> : null}
 
         </div>

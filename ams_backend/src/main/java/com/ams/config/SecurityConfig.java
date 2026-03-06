@@ -42,6 +42,7 @@ public class SecurityConfig
                                 "/ams/users/register"
                         ).permitAll()
                         .requestMatchers("/ams/super-admin/**").hasRole("SUPER_ADMIN")
+                        .requestMatchers("/ams/users/manager/**").hasAnyRole("SUPER_ADMIN", "ARTIST_MANAGER")
                         .anyRequest().authenticated()
                 )
                 .formLogin(formLogin -> formLogin
