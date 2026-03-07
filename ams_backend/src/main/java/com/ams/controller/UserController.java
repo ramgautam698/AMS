@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ams.model.Artist;
+import com.ams.model.Music;
 import com.ams.model.Users;
 import com.ams.service.UsersService;
 
@@ -93,7 +94,57 @@ public class UserController
     	log.info("Inside deleteArtist method of UserController");
         try
         {
-        	userService.deleteArtist(id);
+            return ResponseEntity.status(HttpStatus.OK).body(userService.deleteArtist(id));
+        }
+        catch(Exception e)
+        {
+        	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+	
+	// end of api for managers
+	
+	@GetMapping("/music")
+	public ResponseEntity<?> getMusicOfArtist(
+			@RequestParam(required = true) Integer artishId,
+			@RequestParam(required = false) Integer offset,
+			@RequestParam(required = false) Integer noOfRow)
+    {
+    	log.info("Inside getMusicOfArtist method of UserController");
+        try
+        {
+            return ResponseEntity.status(HttpStatus.OK).body(
+            		userService.getMusicOfArtist(artishId, offset, noOfRow));
+        }
+        catch(Exception e)
+        {
+        	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+	
+	// api for artist
+	
+	@PostMapping("/music/artist")
+	public ResponseEntity<?> createMusic(@RequestBody Music music)
+    {
+    	log.info("Inside createMusic method of UserController");
+        try
+        {
+            return ResponseEntity.status(HttpStatus.OK).body(userService.addUpdateMusic(music));
+        }
+        catch(Exception e)
+        {
+        	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+	
+	@DeleteMapping("/music/artist")
+	public ResponseEntity<?> deleteMusic(@RequestParam(required = true) Integer musicId)
+    {
+    	log.info("Inside deleteMusic method of UserController");
+        try
+        {
+        	userService.deleteMusic(musicId);
             return ResponseEntity.status(HttpStatus.OK).body("DELETED");
         }
         catch(Exception e)
@@ -101,4 +152,6 @@ public class UserController
         	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
+	
+	// end of api for artist
 }

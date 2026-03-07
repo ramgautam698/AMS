@@ -7,8 +7,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.ams.model.Artist;
+import com.ams.model.Music;
 import com.ams.model.Users;
 import com.ams.repository.ArtistRepo;
+import com.ams.repository.MusicRepo;
 import com.ams.repository.UsersRepo;
 import com.ams.service.UsersService;
 import com.ams.utils.LoginUtils;
@@ -25,6 +27,9 @@ public class UserDataServiceImpl implements UsersService
 	
 	@Autowired
 	private ArtistRepo artistRepo;
+	
+	@Autowired
+	private MusicRepo musicRepo;
 
 	@Override
 	public Integer registerUser(Users user)
@@ -66,8 +71,35 @@ public class UserDataServiceImpl implements UsersService
 	}
 	
 	@Override
-	public void deleteArtist(Integer id)
+	public Integer deleteArtist(Integer artistId)
 	{
-		artistRepo.deleteById(id);
+		Integer count = musicRepo.countAlbum(artistId);
+		if(count == 0)
+			artistRepo.deleteById(artistId);
+		return count;
+	}
+	
+	@Override
+	public Integer addUpdateMusic(Music music)
+	{
+		return musicRepo.save(music).getId();
+	}
+	
+	@Override
+	public List<Music> getMusicOfArtist(Integer artishId, Integer offset, Integer noOfRow)
+	{
+		if(artishId == null)
+			artishId = LoginUtils.getUserInfo().getId();
+		if(offset == null)
+			offset =  0;
+		if(noOfRow == null)
+			noOfRow = 10;
+		return musicRepo.getMusicOfArtist(artishId, offset, noOfRow);
+	}
+	
+	@Override
+	public void deleteMusic(Integer id)
+	{
+		musicRepo.deleteById(id);
 	}
 }

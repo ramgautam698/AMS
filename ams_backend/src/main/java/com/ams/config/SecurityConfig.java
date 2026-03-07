@@ -37,12 +37,14 @@ public class SecurityConfig
         http
                 .csrf(csrf -> csrf.disable())  // Disable CSRF for simplicity, you might want to enable it in production
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(
-                                "/ams/security/**",
-                                "/ams/users/register"
-                        ).permitAll()
-                        .requestMatchers("/ams/super-admin/**").hasRole("SUPER_ADMIN")
-                        .requestMatchers("/ams/users/manager/**").hasAnyRole("SUPER_ADMIN", "ARTIST_MANAGER")
+                        .requestMatchers("/ams/security/**", "/ams/users/register")
+                        	.permitAll()
+                        .requestMatchers("/ams/super-admin/**")
+                        	.hasRole("SUPER_ADMIN")
+                        .requestMatchers("/ams/users/manager/**")
+                        	.hasAnyRole("SUPER_ADMIN", "ARTIST_MANAGER")
+                        .requestMatchers("/ams/users/music/artist/**")
+                        	.hasRole("ARTIST")
                         .anyRequest().authenticated()
                 )
                 .formLogin(formLogin -> formLogin
