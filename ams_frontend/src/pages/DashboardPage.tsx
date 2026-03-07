@@ -4,11 +4,12 @@ import { Menu, X, ChevronDown } from 'lucide-react';
 import apiUtils from '@/lib/apiUtils';
 import UserData from '@/component/UserData';
 import ArtistData from '@/component/ArtistData';
+import MusicData from '@/component/MusicData';
 
 const DashboardPage: React.FC = () =>
 {
     const [isOpen, setIsOpen] = useState(false);
-    const [user, setUser] = useState({firstName: "User", lastName: " ", roleType: ""});
+    const [user, setUser] = useState({id: 0, firstName: "User", lastName: " ", roleType: ""});
     const [tab, setTab] = useState(0);
     let navigate = useNavigate();
 
@@ -54,6 +55,7 @@ const DashboardPage: React.FC = () =>
                         {user.roleType === "SUPER_ADMIN" || user.roleType === "ARTIST_MANAGER" ? <>
                             <span className="cursor-pointer mr-1 hover:bg-green-500" onClick={() => setTab(1)}> Artist Data </span>
                         </> : null}
+                        <span className="cursor-pointer mr-1 hover:bg-green-500" onClick={() => setTab(2)}> Profile </span>
                         <div className="relative group">
                             <div className="flex items-center cursor-pointer ml-9" onClick={toggleDropdown}>
                                 <span> Log Out</span>
@@ -77,6 +79,24 @@ const DashboardPage: React.FC = () =>
 
             {(user.roleType === "SUPER_ADMIN" || user.roleType === "ARTIST_MANAGER") && tab === 1 ? <>
                 <ArtistData />
+            </> : null}
+
+            {user.roleType === "ARTIST" ? <>
+                <MusicData artistId={user.id} />
+            </> : null}
+
+            {tab === 2 ? <>
+                <b> Profile Information </b>
+                ID: {user?.id} <br />
+                First Name: {user.firstName} <br />
+                Last Name : {user?.lastName} <br />
+                Email: {user?.email} <br />
+                Phone: {user?.phone} <br />
+                Date of Birth: {user?.dob} <br />
+                Gender: {user?.gender} <br />
+                Address: {user?.address} <br />
+                Joined: {user?.createdAt} <br />
+                Last Update: {user?.updatedAt}
             </> : null}
 
         </div>

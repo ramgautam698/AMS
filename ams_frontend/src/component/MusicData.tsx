@@ -5,34 +5,32 @@ import apiUtils from '@/lib/apiUtils';
 import React, { useEffect, useState } from 'react';
 import { toast, Toaster } from 'react-hot-toast';
 import { Input } from './ui/input';
-import MusicData from './MusicData';
-import { isNull } from 'util';
 
-const ArtistData: React.FC = () =>
+interface MusicProps {
+    artistId: number | 0
+}
+
+const MusicData: React.FC<MusicProps> = ({artistId}) =>
 {
-    const userHead = [
-        { "id": "Id" }, { "name": "Name" }, { "dob": "Date Of Birth" }, { "gender": "Gender"},
-        { "address": "Address" }, { "firstReleaseYear": "First Release Year" },
-        { "noOfAlbumsReleased": "No. Of Albums Released" },
+    const tableHead = [
+        { "id": "Id" }, { "title": "Title" }, { "albumName": "Album Name" }, { "genre": "Genre"},
         { "createdAt": "Created At" }, { "updatedAt": "Updated At" },
     ];
-    const [userList, setUserList] = useState([]);
+    const [musicList, setMusicList] = useState([]);
     const [pagination, setPagination] = useState({ offset: 0, noOfRows: 10, pageNo: 1 });
     const [open, setOpen] = useState(null);
-    const [del, setDel] = useState("");
-    const [artist, setArtist] = useState({ id:null, name: "", dob: "", gender: "", address: "",
-        firstReleaseYear: "2000", noOfAlbumsReleased: 0
-    });
-    const [song, setSong] = useState(null);
+    const [del, setDel] = useState({id:null});
+    const [music, setMusic] = useState({ id:null, title: "", albumName: "", genre: "", artishId: { id: null } });
+    const [user, setUser] = useState({firstName: "User", lastName: " ", roleType: ""});
 
     const handleSubmit = (e: React.FormEvent) =>
     {
         e.preventDefault();
-        apiUtils.post("ams/users/manager/artist", artist)
+        apiUtils.post("ams/users/music/artist", music)
         .then((res) => {
             // Display success message
-            if(artist.id === null)
-                toast.success("Registration Successful!", {
+            if(music.id === null)
+                toast.success("Music Added !!!", {
                 duration: 1000,  // show the toast for 3 seconds
                 });
             else
@@ -40,10 +38,8 @@ const ArtistData: React.FC = () =>
                 duration: 1000,  // show the toast for 3 seconds
                 });
             setOpen(null);
-            setArtist({ id:null, name: "", dob: "", gender: "", address: "",
-                firstReleaseYear: "2000", noOfAlbumsReleased: 0
-            });
-            getUsers();
+            setMusic({  id:null, title: "", albumName: "", genre: "", artishId: { id: null }  });
+            getMusic();
         })
         .catch((error) => {
             toast.error("Registration Failed! ", {
@@ -52,20 +48,20 @@ const ArtistData: React.FC = () =>
         });
     };
 
-    const getUsers = (offset = pagination.offset, noOfRows = pagination.noOfRows) =>
+    const getMusic = (offset = pagination.offset, noOfRows = pagination.noOfRows) =>
     {
-        // setActiveSection('Users');
-        apiUtils.get("ams/users/manager/artist", { offset: offset, noOfRows: noOfRows }).then((res) =>
+        apiUtils.get("ams/users/music", { artishId: artistId, offset: offset, noOfRows: noOfRows })
+        .then((res) =>
         {
             // Ensure res.data is an array
             if (Array.isArray(res.data))
             {
-                setUserList(res.data);
+                setMusicList(res.data);
             }
             else
             {
                 console.error("Unexpected data format:", res.data);
-                setUserList([]); // Set an empty list or handle the error appropriately
+                setMusicList([]); // Set an empty list or handle the error appropriately
             }
         }).catch((error) => {
             console.error("API error:", error);
@@ -76,11 +72,9 @@ const ArtistData: React.FC = () =>
        if(open === null)
        {
         if(arg === "update")
-            getUsers();
+            getMusic();
         setOpen(arg);
-        setArtist({ id:null, name: "", dob: "", gender: "", address: "",
-            firstReleaseYear: "2000", noOfAlbumsReleased: 0
-        });
+        setMusic({ id:null, title: "", albumName: "", genre: "", artishId: { id: null } });
        }
        else
         setOpen(null);
@@ -88,19 +82,20 @@ const ArtistData: React.FC = () =>
     };
 
     useEffect(() => {
-        getUsers();
-    }, []);
+        getMusic();
+        let userData = JSON.parse(sessionStorage.getItem("user"));
+        setUser(userData);
+    }, [artistId]);
 
-    const deleteUser = () =>
+    const deleteMusic = () =>
     {
-        let id = artist?.id;
-        apiUtils.delete("ams/users/manager/artist", {id}).then((res) => {
+        apiUtils.delete("ams/users/music/artist", {musicId: del?.id}).then((res) => {
             // Display success message
-            toast.success("Artist Deleted !!!", {
+            toast.success("Music Deleted !!!", {
             duration: 1000,  // show the toast for 3 seconds
             });
-            setDel("");
-            getUsers();
+            setDel({id:null});
+            getMusic();
 
         })
         .catch((error) => {
@@ -113,39 +108,44 @@ const ArtistData: React.FC = () =>
     return(
     <>
         <Toaster />
+        {user.roleType === "ARTIST" ?
         <div><Button onClick={() => handleOpenModal("new")}
             className="px-2 py-3 text-left text-xs font-medium text-green-500 uppercase bg-blue-100 tracking-wider">
-                Register New Artist
+                Add New Music
         </Button></div>
+        : null }
         <Table>
-            <TableCaption> Artist List </TableCaption>
+            <TableCaption> Music List </TableCaption>
             <TableHeader>
             <TableRow>
-                {userHead.map((head, i) => (
+                {tableHead.map((head, i) => (
                 <TableHead key={i} className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                     {Object.values(head)}
                 </TableHead>
                 ))}
-                <TableHead className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                {user.roleType === "ARTIST" ? <TableHead className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                     Action
                 </TableHead>
+                : null }
             </TableRow>
             </TableHeader>
             <TableBody>
-            {userList.map((user, i) => (
+            {musicList.map((music, i) => (
                 <TableRow key={i} className={i % 2 ? "bg-gray-50" : "bg-white"}>
-                {userHead.map((head, j) => (
+                {tableHead.map((head, j) => (
                     <TableCell key={j} className="px-2 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user[Object.keys(head)[0]]}
+                    {music[Object.keys(head)[0]]}
                     </TableCell>
                 ))}
-                <TableCell className="text-sm text-gray-900">
-                    <div className="flex relative w-full" onClick={() => setArtist(user)}>
-                    <Button onClick={() => handleOpenModal("update")} className="bg-blue-500 hover:bg-blue-600 text-white rounded">Update</Button>
-                    <Button onClick={() => setDel(user?.name)} className="bg-red-500 hover:bg-orange-500 text-white rounded ml-2">Delete</Button>
-                    <Button onClick={() => setSong(user.id)} className="bg-green-500 hover:bg-green-300 text-white rounded ml-2">View Song</Button>
-                    </div>
-                </TableCell>
+                {user.roleType === "ARTIST" ? <>
+                    <TableCell className="text-sm text-gray-900">
+                        <div className="flex relative w-full" onClick={() => setMusic(music)}>
+                        <Button onClick={() => handleOpenModal("update")} className="bg-blue-500 hover:bg-blue-600 text-white rounded">Update</Button>
+                        <Button onClick={() => setDel(music)} className="bg-red-500 hover:bg-orange-500 text-white rounded ml-2">Delete</Button>
+                        </div>
+                    </TableCell>
+                </> : null}
+                
                 </TableRow>
             ))}
             </TableBody>
@@ -162,7 +162,7 @@ const ArtistData: React.FC = () =>
                     pageNo: pagination.pageNo - 1,
                     offset: offset,
                     });
-                    getUsers(offset, pagination.noOfRows);
+                    getMusic(offset, pagination.noOfRows);
                 }}
                 />
             </PaginationItem>
@@ -171,7 +171,7 @@ const ArtistData: React.FC = () =>
             </PaginationItem>
             <PaginationItem>
                 <PaginationNext
-                disabled={userList.length < pagination.noOfRows}
+                disabled={musicList.length < pagination.noOfRows}
                 onClick={() => {
                     const offset = pagination.offset + pagination.noOfRows;
                     setPagination({
@@ -179,7 +179,7 @@ const ArtistData: React.FC = () =>
                     pageNo: pagination.pageNo + 1,
                     offset: offset,
                     });
-                    getUsers(offset, pagination.noOfRows);
+                    getMusic(offset, pagination.noOfRows);
                 }}
                 />
             </PaginationItem>
@@ -191,7 +191,7 @@ const ArtistData: React.FC = () =>
             <div className="bg-white rounded-lg shadow-lg p-6 w-3/4 max-h-screen overflow-y-auto ">
                 <div className='flex bg-blue-200 flex-col md:flex-row gap-4 bg-blue-800 justify-center items-center'>
                     <h2 className="text-xl font-bold text-white md:w-4/5 ">
-                        {open === "new" ? <> Register New Artist </> : <> Update Artist </>} </h2>
+                        {open === "new" ? <> Register New Music </> : <> Update Music </>} </h2>
                     <span className="md:w-1/5 justify-end ">
                         <button className="bg-white" onClick={() => setOpen(null)} > Close </button>
                     </span>
@@ -201,7 +201,7 @@ const ArtistData: React.FC = () =>
                     onSubmit={handleSubmit}
                     className="p-9 grid grid-cols-2 md:grid-cols-2 gap-6 justify-center bg-gray-50"
                     >
-                        {artist.id === null ? null :
+                        {music.id === null ? null :
                         <div className="mb-4">
                             <label htmlFor="id" className="block text-sm font-medium mb-1">
                                 ID
@@ -209,105 +209,71 @@ const ArtistData: React.FC = () =>
                             <Input disabled
                                 id="id"
                                 type="text"
-                                value={artist.id}
+                                value={music.id}
                                 className="w-full bg-sky-300 px-4 py-2 border border-gray-300 rounded text-sm"
                             />
                         </div>
                         }
                         <div className="mb-4">
-                            <label htmlFor="name" className="block text-sm font-medium mb-1">
-                                Name
+                            <label htmlFor="title" className="block text-sm font-medium mb-1">
+                                Title
                             </label>
                             <Input
-                                id="name"
+                                id="title"
                                 type="text"
-                                value={artist.name}
-                                onChange={(e) => setArtist({...artist, name: e.target.value})}
+                                value={music.title}
+                                onChange={(e) => setMusic({...music, title: e.target.value})}
                                 className="w-full bg-sky-300 px-4 py-2 border border-gray-300 rounded text-sm"
                             />
                         </div>
                         <div className="mb-4">
-                            <label htmlFor="dob" className="block text-sm font-medium mb-1">
-                                Date of Birth
+                            <label htmlFor="albumName" className="block text-sm font-medium mb-1">
+                                Album Name
                             </label>
                             <Input
-                                id="dob"
-                                type="date"
-                                value={artist.dob}
-                                onChange={(e) => setArtist({...artist, dob: e.target.value})}
+                                id="albumName"
+                                type="albumName"
+                                value={music.albumName}
+                                onChange={(e) => setMusic({...music, albumName: e.target.value})}
                                 className="w-full bg-sky-300 px-4 py-2 border border-gray-300 rounded text-sm"
                             />
                         </div>
                         <div className="mb-4">
-                            <label htmlFor="gender" className="block text-sm font-medium mb-1">
-                                Gender
+                            <label htmlFor="genre" className="block text-sm font-medium mb-1">
+                                Genre
                             </label>
                             <select
-                                id="gender"
-                                value={artist.gender}
-                                onChange={(e) => setArtist({...artist, gender: e.target.value})}
+                                id="genre"
+                                value={music.genre}
+                                onChange={(e) => setMusic({...music, genre: e.target.value})}
                                 className="w-full bg-sky-300 px-4 py-2 border border-gray-300 rounded text-sm"
                             >
-                                <option id="M" value="M"> Male </option>
-                                <option id="F" value="F"> Female </option>
-                                <option id="O" value="O"> Other </option>
+                                <option id="RND" value="RND"> RND </option>
+                                <option id="COUNTRY" value="COUNTRY"> COUNTRY </option>
+                                <option id="CLASSIC" value="CLASSIC"> CLASSIC </option>
+                                <option id="ROCK" value="RND"> ROCK </option>
+                                <option id="JAZZ" value="JAZZ"> JAZZ </option>
                             </select>
                         </div>
                         <div className="mb-4">
-                            <label htmlFor="address" className="block text-sm font-medium mb-1">
-                                Address
+                            <label htmlFor="artishId" className="block text-sm font-medium mb-1">
+                                Artist Id
                             </label>
-                            <Input
-                                id="address"
-                                type="text"
-                                value={artist.address}
-                                onChange={(e) => setArtist({...artist, address: e.target.value})}
+                            <Input disabled={music.id !== null}
+                                id="artishId"
+                                type="artishId"
+                                value={music.artishId?.id}
+                                onChange={(e) => setMusic({...music, artishId: { id: e.target.value }})}
                                 className="w-full bg-sky-300 px-4 py-2 border border-gray-300 rounded text-sm"
                             />
                         </div>
-                        <div className="mb-4">
-                            <label htmlFor="firstReleaseYear" className="block text-sm font-medium mb-1">
-                                First Release Year
-                            </label>
-                            <Input
-                                id="firstReleaseYear"
-                                type="number"
-                                value={artist.firstReleaseYear}
-                                onChange={(e) =>{
-                                    if(parseInt(e.target.value) < 2000)
-                                        setArtist({...artist, firstReleaseYear: "2000"})
-                                    else if(parseInt(e.target.value) > 2100)
-                                        setArtist({...artist, firstReleaseYear: "2100"})
-                                    else
-                                        setArtist({...artist, firstReleaseYear: e.target.value})
-                                }}
-                                className="w-full bg-sky-300 px-4 py-2 border border-gray-300 rounded text-sm"
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label htmlFor="firstReleaseYear" className="block text-sm font-medium mb-1">
-                                No. Of Albums Released
-                            </label>
-                            <Input
-                                id="noOfAlbumsReleased"
-                                type="number"
-                                value={artist.noOfAlbumsReleased}
-                                onChange={(e) =>{
-                                    if(parseInt(e.target.value) < 0)
-                                        setArtist({...artist, noOfAlbumsReleased: 0})
-                                    else
-                                        setArtist({...artist, noOfAlbumsReleased: parseInt(e.target.value)})
-                                }}
-                                className="w-full bg-sky-300 px-4 py-2 border border-gray-300 rounded text-sm"
-                            />
-                        </div>
-                        {artist.id !== null ? <div></div> : null }
+                        {music.id !== null ? <div></div> : null }
                         <div className="mt-3 mb-6 flex items-center justify-between">
                             <Button
                             type="submit"
                             className="rounded bg-lime-600 text-white py-2 hover:bg-lime-700 transition-colors"
                             >
-                            {artist.id === null ? <span> Register </span> : <span> Update </span> }
+                            {music.id === null ? <span> Register </span> : <span> Update </span> }
                             </Button>
                     </div>
                 </form>
@@ -316,25 +282,26 @@ const ArtistData: React.FC = () =>
         </div>
         : null }
 
-        {del?.length > 3 ?
+        {del?.id !== null ?
         <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-50 w-full ">
             <div className="bg-white rounded-lg shadow-lg p-6 w-3/4 max-h-screen overflow-y-auto ">
                 <div className='flex bg-blue-200 flex-col md:flex-row gap-4 bg-blue-800 justify-center items-center'>
                     <h2 className="text-xl font-bold text-white md:w-4/5 "> Delete User</h2>
                     <span className="md:w-1/5 justify-end ">
-                        <button className="bg-white" onClick={() => setDel("")} > Close </button>
+                        <button className="bg-white" onClick={() => setDel({id:null})} > Close </button>
                     </span>
                 </div>
                 <div className="modal-body ">
-                    Are you sure you want to record user of selected user? <p />
-                    Id: {artist.id}
+                    Are you sure you want to delete selected music? <p />
+                    Title: {del?.title} <p />
+                    Album: {del?.title}
                 </div>
                 <div className="mt-3 mb-6 flex items-center justify-between">
-                    <Button type="button" onClick={() => setDel("")}
+                    <Button type="button" onClick={() => setDel({id:null})}
                     className="rounded bg-green-600 text-white py-2 hover:bg-green-400 transition-colors" >
                         Cancel
                     </Button>
-                    <Button type="button" onClick={() => deleteUser()}
+                    <Button type="button" onClick={() => deleteMusic()}
                     className="rounded bg-red-600 text-white py-2 hover:bg-orange-700 transition-colors" >
                         Delete
                     </Button>
@@ -342,13 +309,8 @@ const ArtistData: React.FC = () =>
             </div>
         </div>
         : null }
-
-        {song !== null ? <>
-            <MusicData artistId={song} />
-        </> : null}
-
     </>
     )
 }
 
-export default ArtistData;
+export default MusicData;
